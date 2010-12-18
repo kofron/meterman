@@ -1,0 +1,12 @@
+{application, meterman,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { meterman_app, []}},
+  {env, []}
+ ]}.
