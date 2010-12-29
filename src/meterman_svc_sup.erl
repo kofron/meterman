@@ -19,5 +19,11 @@ init([]) ->
 	       5000,
 	       worker,
 	       [meterman_ltq]},
-    Children = [LTQSpec],
+    CTRLSpec = {mm_rdr_ctrl,
+		{mm_rdr_ctrl, start_link, []},
+		permanent,
+		5000,
+		worker,
+		[mm_rdr_ctrl]},
+    Children = [LTQSpec, CTRLSpec],
     {ok, {SuperStrat, Children}}.
