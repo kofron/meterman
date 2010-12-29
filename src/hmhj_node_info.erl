@@ -15,9 +15,14 @@
 
 % api
 -export([new/0, new_with/3, get_ip/1, get_port/1, get_card/1, to_uri/1]).
-
+-export([is_node_info/1]).
 new() ->
     #nodeinfo{}.
+
+is_node_info(Blob) when is_record(Blob, nodeinfo) ->
+    true;
+is_node_info(_) ->
+    false.
 
 new_with(IPAddr, Port, Card) ->
     {ok, #nodeinfo{ip=IPAddr, port=Port, card=Card}}.
