@@ -12,7 +12,8 @@
 	 }).
 
 % gen_server exports
--export([start_link/0, start_link/3, init/1, terminate/2, code_change/3]).
+-export([start_link/0, start_link/1, start_link/3, init/1]).
+-export([terminate/2, code_change/3]).
 -export([handle_call/3, handle_info/2, handle_cast/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,6 +21,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 start_link() ->
     gen_server:start_link(?MODULE, [], []).
+
+start_link(IOSHostData) ->
+    gen_server:start_link(?MODULE, [IOSHostData], []).
 
 start_link(TgtIp, TgtPort, TgtCard) ->
     {ok, IOSHostData} = hmhj_node_info:new_with(TgtIp, TgtPort, TgtCard),
@@ -46,12 +50,22 @@ handle_cast(Cast, StateData) ->
 handle_info(timeout, #state{tgt=Tgt}=StateData) ->
     StartTS = erlang:now(),
     URI = hmhj_node_info:to_uri(Tgt),
-    _Data = get_hmhj_data(URI),
+    Data = get_hmhj_data(URI),
+    case mm_pt:j2d(Data) of
+	{data, DBlob} ->
+	    {ok, NDBlob} = mm_data:set_host(DBlob, Tgt),
+	    F = fun() -> io:format("sql statement:~p~n",
+				   [lists:flatten(mm_pt:d2s(NDBlob))])
+		end,
+	    meterman_worker_pool:submit_async(F);
+	{error, Err} ->
+	    io:format("decoding error: ~p~n",[Err])
+    end,
     SleepTime = case timer:now_diff(erlang:now(), StartTS) of
 		    T when T > ?TMOUTUS ->
 			0;
 		    T when T < ?TMOUTUS ->
-			?TMOUTUS - T
+			trunc(?TMOUT - T/1000)
 		end,
     {noreply, StateData, SleepTime}.
 
