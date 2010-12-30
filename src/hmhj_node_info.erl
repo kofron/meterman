@@ -10,11 +10,13 @@
 -record(nodeinfo,
 	{ip = <<0,0,0,0>> :: binary(),
 	 port = 8000 :: integer(),
-	 card = cardA :: atom()
+	 card = <<"cardA">> :: binary(),
+	 host = <<"ioserver">> :: binary()
 	}).
 
 % api
 -export([new/0, new_with/3, get_ip/1, get_port/1, get_card/1, to_uri/1]).
+-export([get_host/1]).
 -export([is_node_info/1]).
 new() ->
     #nodeinfo{}.
@@ -35,6 +37,9 @@ get_port(Blob) ->
 
 get_card(Blob) ->
     Blob#nodeinfo.card.
+
+get_host(Blob) ->
+    Blob#nodeinfo.host.
 
 to_uri(Blob) ->
     {ok, Host} = binary_to_url(get_ip(Blob)),
