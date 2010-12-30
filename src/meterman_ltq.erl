@@ -21,7 +21,7 @@
 	}).
 
 % api
--export([persist/1, persist_async/1, next_to_write/0]).
+-export([persist/1, persist_async/1, next_to_write/0, length/0]).
 
 % gen_server exports
 -export([start_link/0, init/1, terminate/2, code_change/3]).
@@ -38,6 +38,9 @@ persist_async(Item) ->
 
 next_to_write() ->
     gen_server:call(?SERVER, next).
+
+length() ->
+    gen_server:call(?SERVER, length).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% gen_server callbacks %%%
@@ -66,7 +69,9 @@ handle_call(next, _From, #state{q=Q}=StateData) ->
 	       empty ->
 		   []
 	   end,
-    {reply, Next, StateData, ?TMOUT_WT}.
+    {reply, Next, StateData, ?TMOUT_WT};    
+handle_call(length, _From, #state{q=Q}=StateData) ->
+    {reply, queue:len(Q), StateData}.
 
 handle_cast({store, Item}, #state{q=Q}=StateData) ->
     {ok, NewQ} = write_to_queue(Q, Item),
