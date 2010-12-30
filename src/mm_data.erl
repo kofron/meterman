@@ -7,7 +7,7 @@
 % for now, mm_data is a record
 -record(data, {
 	  card = none :: atom(),
-	  host = none :: atom(),
+	  source = none :: atom(),
 	  ts = 0 :: integer(),
 	  nch  = 0 :: integer(),
 	  chdat = [] :: [float() | integer()]
@@ -20,8 +20,8 @@
 -export([new/0]).
 
 % getters/setters
--export([get_card/1, get_host/1, get_nch/1, get_chdat/1, get_ts/1]).
--export([set_card/2, set_host/2, set_nch/2, set_chdat/2, set_ts/2]).
+-export([get_card/1, get_source/1, get_nch/1, get_chdat/1, get_ts/1]).
+-export([set_card/2, set_source/2, set_nch/2, set_chdat/2, set_ts/2]).
 
 % convenience methods
 -export([append_data/2]). % adds a channel and increments channel count
@@ -41,13 +41,13 @@ get_card(#data{card=C}) ->
 set_card(D, C) when is_record(D, data) ->
     {ok, D#data{card = C}}.
 
--spec get_host(#data{}) -> atom().
-get_host(#data{host=H}) ->
+-spec get_source(#data{}) -> atom().
+get_source(#data{source=H}) ->
     H.
 
--spec set_host(#data{}, atom()) -> {ok, #data{}}.
-set_host(D, H) when is_record(D, data) ->
-    {ok, D#data{host=H}}.
+-spec set_source(#data{}, atom()) -> {ok, #data{}}.
+set_source(D, H) when is_record(D, data) ->
+    {ok, D#data{source=H}}.
 
 -spec get_nch(#data{}) -> integer().
 get_nch(#data{nch=N}) ->
