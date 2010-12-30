@@ -46,7 +46,7 @@ dj2d([], DBlob) ->
     DBlob.
 
 d2s(MMData) ->
-    H = mm_data:get_host(MMData),
+    H = hmhj_node_info:get_host(mm_data:get_source(MMData)),
     T = integer_to_list(mm_data:get_ts(MMData)),
     D = mm_data:get_chdat(MMData),
     C = mm_data:get_card(MMData),
@@ -60,21 +60,29 @@ d2s(HostName, CardSlot, Timestamp, [{Ch,V}|R], Acc) ->
 	      M when is_float(M) ->
 		  float_to_list(M)
 	  end,
-    Str = ["insert into master",
-	   " ",
-	   "(hostname, cardslot, timestamp, channel, value)",
-	   " ",
-	   "values",
-	   " ",
-	   "(",
-	   HostName,
-	   ",",
-	   CardSlot,
-	   ",",
+    Str = [<<"insert into master">>,
+	   <<" ">>,
+	   <<"(hostname, cardslot, timestamp, channel, value)">>,
+	   <<" ">>,
+	   <<"values">>,
+	   <<" ">>,
+	   <<"(">>,
+	   escape(HostName),
+	   <<",">>,
+	   escape(CardSlot),
+	   <<",">>,
 	   Timestamp,
-	   ",",
+	   <<",">>,
 	   integer_to_list(Ch),
-	   ",",
+	   <<",">>,
 	   Val,
-	   ");"],
+	   <<")">>],
     d2s(HostName,CardSlot,Timestamp,R,[Str|Acc]).
+
+escape(Bin) ->
+    lists:foldr(fun(A,B) -> 
+			<<A/binary,B/binary>> 
+		end, 
+		<<>>,
+		[<<$'>>,Bin,<<$'>>]).
+			
