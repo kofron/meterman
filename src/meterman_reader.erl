@@ -3,7 +3,7 @@
 -behavior(gen_server).
 
 % Timeout interval
--define(TMOUT, 1000).
+-define(TMOUT, 5000).
 -define(TMOUTUS, 1000*?TMOUT).
 
 % internal state record
@@ -53,10 +53,8 @@ handle_info(timeout, #state{tgt=Tgt}=StateData) ->
     Data = get_hmhj_data(URI),
     case mm_pt:j2d(Data) of
 	{data, DBlob} ->
-	    {ok, NDBlob} = mm_data:set_host(DBlob, Tgt),
-	    F = fun() -> io:format("sql statement:~p~n",
-				   [lists:flatten(mm_pt:d2s(NDBlob))])
-		end,
+	    {ok, NDBlob} = mm_data:set_source(DBlob, Tgt),
+	    F = convert_and_split(NDBlob),
 	    meterman_worker_pool:submit_async(F);
 	{error, Err} ->
 	    io:format("decoding error: ~p~n",[Err])
@@ -80,4 +78,16 @@ get_hmhj_data(URI) ->
 	    Body;
 	{error, _Err} ->
 	    noretry
+    end.
+
+convert_and_split(NDBlob) ->
+    fun() -> 
+	    SQL = mm_pt:d2s(NDBlob),
+	    lists:foreach(fun(X) ->
+				  F2 = fun() -> 
+					       mm_persist:db_or_ltq(X) 
+				       end,
+				  meterman_worker_pool:submit_async(F2)
+			  end,
+			  SQL)
     end.
